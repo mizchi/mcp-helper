@@ -1,0 +1,12 @@
+{
+  "lint": {
+    "enable": false
+  },
+  "tasks": {
+    "dev": "deno run --watch main.ts"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1",
+    "@modelcontextprotocol/sdk/": "npm:@modelcontextprotocol/sdk/"
+  }
+}
