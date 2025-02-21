@@ -1,6 +1,7 @@
 {
   "name": "@mizchi/mcp-helper",
   "version": "0.0.1",
+  "license": "MIT",
   "description": "MCP helper",
   "exports": {
     ".": "./mod.ts"
