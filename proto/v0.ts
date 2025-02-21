@@ -1,6 +1,20 @@
-#!/usr/bin/env -S deno run --watch --allow-net --allow-env --allow-run --allow-sys --allow-read --allow-write
+/**
+register mcp server
 
-// Simple implementation on deno server
+```json
+{
+  "mcpServers": {
+    "mymcp": {
+      "command": "deno",
+      "args": ["run", "-A", "server.ts"],
+      "env": {},
+      "disabled": false,
+      "alwaysAllow": []
+    }
+  }
+}
+
+*/
 import { Server } from "npm:@modelcontextprotocol/sdk@1.5.0/server/index.js";
 import { StdioServerTransport } from "npm:@modelcontextprotocol/sdk@1.5.0/server/stdio.js";
 import {
@@ -87,5 +101,42 @@ server.setRequestHandler(CallToolRequestSchema, (request: CallToolRequest) => {
   }
 });
 
-await server.connect(new StdioServerTransport());
-console.error("MCP server running on stdio");
+if (import.meta.main) {
+  await server.connect(new StdioServerTransport());
+  console.error("MCP server running on stdio");
+}
+
+/// test
+// deno test -A server.ts
+import { Client } from "npm:@modelcontextprotocol/sdk@1.5.0/client/index.js";
+import { InMemoryTransport } from "npm:@modelcontextprotocol/sdk@1.5.0/inMemory.js";
+import { expect } from "jsr:@std/expect@1.0.13";
+
+Deno.test("getStringLength", async () => {
+  const client = new Client(
+    {
+      name: "test client",
+      version: "1.0",
+    },
+    {
+      capabilities: {},
+    }
+  );
+  const [clientTransport, serverTransport] =
+    InMemoryTransport.createLinkedPair();
+  await Promise.all([
+    client.connect(clientTransport),
+    server.connect(serverTransport),
+  ]);
+  const result = await client.callTool({
+    name: "getStringLength",
+    arguments: {
+      input: "Hello, world!",
+    },
+  });
+  expect(result).toEqual({
+    content: [{ type: "text", text: "13" }],
+    isError: false,
+  });
+  // console.error("[result]", result);
+});

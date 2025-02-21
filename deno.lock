@@ -4,8 +4,8 @@
     "jsr:@std/assert@^1.0.11": "1.0.11",
     "jsr:@std/expect@1.0.13": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
-    "npm:@modelcontextprotocol/sdk@*": "1.5.0_zod@3.24.2",
     "npm:@modelcontextprotocol/sdk@1.5.0": "1.5.0_zod@3.24.2",
+    "npm:zod-to-json-schema@3.24.2": "3.24.2_zod@3.24.2",
     "npm:zod@3.24.2": "3.24.2"
   },
   "jsr": {
@@ -107,11 +107,5 @@
     "zod@3.24.2": {
       "integrity": "sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ=="
     }
-  },
-  "workspace": {
-    "dependencies": [
-      "jsr:@std/assert@1",
-      "npm:@modelcontextprotocol/sdk@*"
-    ]
   }
 }

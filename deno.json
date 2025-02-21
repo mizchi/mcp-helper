@@ -1,12 +1,11 @@
 {
-  "lint": {
-    "enable": false
+  "name": "@mizchi/mcp-helper",
+  "version": "0.0.1",
+  "description": "MCP helper",
+  "exports": {
+    ".": "./mod.ts"
   },
   "tasks": {
-    "dev": "deno run --watch main.ts"
-  },
-  "imports": {
-    "@std/assert": "jsr:@std/assert@1",
-    "@modelcontextprotocol/sdk/": "npm:@modelcontextprotocol/sdk/"
+    "test": "deno test -A"
   }
 }
