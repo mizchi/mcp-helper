@@ -1,10 +1,11 @@
 {
   "name": "@mizchi/mcp-helper",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "description": "MCP helper",
   "exports": {
-    ".": "./mod.ts"
+    ".": "./mod.ts",
+    "./lmcp": "./lmcp.ts"
   },
   "tasks": {
     "test": "deno test -A"

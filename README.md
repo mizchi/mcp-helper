@@ -109,6 +109,24 @@ Creates a test client for the given server.
 - `server`: The MCP server instance
 - Returns: A type-safe client for testing tools
 
+## CLI
+
+Add this export for your server impl.
+
+```ts
+// add this export for impl
+export default server;
+```
+
+```bash
+# run local
+$ deno run -A jsr:@mizchi/mcp-helper/lmcp -A examples/getStringLength.ts --input hello
+
+# Install cli
+$ deno install -Afg jsr:@mizchi/mcp-helper/lmcp -A
+$ lmcp examples/getStringLength.ts --input hello
+```
+
 ## Development
 
 ```bash

@@ -1,6 +1,5 @@
 import { createToolsServer } from "jsr:@mizchi/mcp-helper";
 import { z } from "npm:zod";
-import { StdioServerTransport } from "npm:@modelcontextprotocol/sdk@1.5.0/server/stdio.js";
 
 // Define your tools with Zod schemas
 const tools = [
@@ -28,8 +27,5 @@ const server = createToolsServer(
     },
   }
 );
-if (import.meta.main) {
-  await server.connect(new StdioServerTransport());
-}
 
-export default server;
+// Missing export default server

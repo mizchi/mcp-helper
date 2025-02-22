@@ -1,5 +1,9 @@
 import { parseArgs } from "node:util";
 import { createInMemoryTestClient } from "./lib.ts";
+import {
+  resolve,
+  fromFileUrl,
+} from "https://deno.land/std@0.210.0/path/mod.ts";
 
 async function main() {
   const { positionals, values } = parseArgs({
@@ -14,13 +18,15 @@ async function main() {
   // Validate arguments
   if (positionals.length !== 1) {
     console.error(
-      "Usage: cli.ts <server_name> [--input <value> | --args <json>]"
+      "Usage: lmcp.ts <module_path> [--input <value> | --args <json>]"
     );
-    console.error("Example: cli.ts getStringLength --input 'hello'");
+    console.error(
+      "Example: lmcp.ts ./examples/getStringLength.ts --input 'hello'"
+    );
     Deno.exit(1);
   }
 
-  const [name] = positionals;
+  const [modulePath] = positionals;
   let toolArgs: Record<string, unknown>;
 
   // Parse tool arguments
@@ -44,26 +50,33 @@ async function main() {
   }
 
   try {
-    // Import server instance from example
-    const serverModule = `./examples/${name}.ts`;
-    console.log(`Loading server from ${serverModule}`);
+    // Resolve absolute path
+    const currentDir = fromFileUrl(import.meta.url);
+    const absolutePath = resolve(currentDir, "..", modulePath);
+    console.log(`Loading server from ${absolutePath}`);
 
-    const server = await import(serverModule).then((m) => m.default);
+    const server = await import(absolutePath).then((m) => m.default);
     if (!server) {
       console.error(
-        `Server module found but no default export in ${serverModule}`
+        `Server module found but no default export in ${absolutePath}`
       );
+      console.error("\nAdd this code to export the server:\n");
+      console.error(`// add for lmcp
+if (import.meta.main) {
+  await server.connect()
+}
+export default server;`);
       Deno.exit(1);
     }
 
     // Create in-memory client
-    console.log("Creating in-memory client...");
+    console.log("Creating in-memory client (cli-test-client)...");
     const client = await createInMemoryTestClient(server);
 
     try {
-      // Call tool
-      console.log(`Calling tool "${name}" with args:`, toolArgs);
-      const result = await client.callTool(name, toolArgs);
+      // Call tool with fixed name
+      console.log(`Calling tool "getStringLength" with args:`, toolArgs);
+      const result = await client.callTool("getStringLength", toolArgs);
       console.log("Result:", JSON.stringify(result, null, 2));
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -79,9 +92,7 @@ async function main() {
   } catch (error: unknown) {
     if (error instanceof Error) {
       if (error.message.includes("Module not found")) {
-        console.error(`Server "${name}" not found in examples/`);
-        console.error("Available servers:");
-        console.error("  - getStringLength");
+        console.error(`Failed to load module: ${modulePath}`);
       } else {
         console.error("Error:", error.message);
       }
