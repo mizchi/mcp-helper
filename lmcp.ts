@@ -1,55 +1,82 @@
 import { parseArgs } from "node:util";
 import { createInMemoryTestClient } from "./lib.ts";
-import { resolve, fromFileUrl } from "jsr:@std/path";
+import {
+  resolve,
+  fromFileUrl,
+  join,
+  isAbsolute,
+  basename,
+} from "jsr:@std/path";
 
 async function main() {
-  const { positionals, values } = parseArgs({
-    args: Deno.args,
-    allowPositionals: true,
-    options: {
-      input: { type: "string" },
-      args: { type: "string" },
-    },
-  });
-
-  // Validate arguments
-  if (positionals.length !== 1) {
+  // Find the index of "--" separator
+  const separatorIndex = Deno.args.indexOf("--");
+  if (separatorIndex === -1) {
     console.error(
-      "Usage: lmcp.ts <module_path> [--input <value> | --args <json>]"
+      "Usage: lmcp.ts <module_path> [tool_name] -- [tool arguments]"
     );
     console.error(
-      "Example: lmcp.ts ./examples/getStringLength.ts --input 'hello'"
+      "Example: lmcp.ts ./examples/getStringLength.ts -- --input='hello'"
+    );
+    console.error(
+      "Example: lmcp.ts ./examples/getStringLength.ts getStringLength -- --input='hello'"
     );
     Deno.exit(1);
   }
 
-  const [modulePath] = positionals;
-  let toolArgs: Record<string, unknown>;
+  // Split args into two parts
+  const mainArgs = Deno.args.slice(0, separatorIndex);
+  const toolRawArgs = Deno.args.slice(separatorIndex + 1);
+
+  // Parse main arguments
+  const { positionals } = parseArgs({
+    args: mainArgs,
+    allowPositionals: true,
+  });
+
+  // Validate arguments
+  if (positionals.length < 1 || positionals.length > 2) {
+    console.error(
+      "Usage: lmcp.ts <module_path> [tool_name] -- [tool arguments]"
+    );
+    console.error(
+      "Example: lmcp.ts ./examples/getStringLength.ts -- --input='hello'"
+    );
+    console.error(
+      "Example: lmcp.ts ./examples/getStringLength.ts getStringLength -- --input='hello'"
+    );
+    Deno.exit(1);
+  }
+
+  const [modulePath, explicitToolName] = positionals;
+  // If tool name is not provided, use the filename without extension
+  const toolName =
+    explicitToolName ?? basename(modulePath).replace(/\.[^/.]+$/, "");
 
   // Parse tool arguments
-  if (values.args) {
-    try {
-      toolArgs = JSON.parse(values.args);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("Invalid JSON in --args:", error.message);
+  const toolArgs: Record<string, unknown> = {};
+  for (const arg of toolRawArgs) {
+    if (arg.startsWith("--")) {
+      const [key, value] = arg.slice(2).split("=");
+      if (value === undefined) {
+        toolArgs[key] = true;
       } else {
-        console.error("Invalid JSON in --args");
+        try {
+          // Try to parse as JSON if possible
+          toolArgs[key] = JSON.parse(value);
+        } catch {
+          // If not valid JSON, use as string
+          toolArgs[key] = value.replace(/^['"]|['"]$/g, ""); // Remove quotes if present
+        }
       }
-      Deno.exit(1);
     }
-  } else if (values.input) {
-    toolArgs = { input: values.input };
-  } else {
-    console.error("Either --input or --args must be provided");
-    console.error("Example: --input 'hello' or --args '{\"input\":\"hello\"}'");
-    Deno.exit(1);
   }
 
   try {
     // Resolve absolute path
-    const currentDir = fromFileUrl(import.meta.url);
-    const absolutePath = resolve(currentDir, "..", modulePath);
+    const absolutePath = isAbsolute(modulePath)
+      ? modulePath
+      : join(Deno.cwd(), modulePath);
     console.log(`Loading server from ${absolutePath}`);
 
     const server = await import(absolutePath).then((m) => m.default);
@@ -71,10 +98,36 @@ export default server;`);
     const client = await createInMemoryTestClient(server);
 
     try {
-      // Call tool with fixed name
-      console.log(`Calling tool "getStringLength" with args:`, toolArgs);
-      const result = await client.callTool("getStringLength", toolArgs);
-      console.log("Result:", JSON.stringify(result, null, 2));
+      // Call tool with specified name
+      console.log(`Calling tool "${toolName}" with args:`, toolArgs);
+      const result = await client.callTool(toolName, toolArgs);
+
+      // Format output based on content type
+      if (result.content && result.content.length > 0) {
+        const firstContent = result.content[0];
+        if (firstContent.type === "text") {
+          // If it's text content, check format and display
+          console.log("\nResult:");
+          const text = firstContent.text;
+          if (text.trim().startsWith("{") && text.trim().endsWith("}")) {
+            // If it looks like JSON object, display as-is
+            console.log(text);
+          } else {
+            try {
+              // Try to parse and stringify to unescape \n
+              console.log(JSON.parse(`"${text.replace(/"/g, '\\"')}"`));
+            } catch {
+              // If parsing fails, display as-is
+              console.log(text);
+            }
+          }
+        } else {
+          // For other types, use JSON stringify
+          console.log("Result:", JSON.stringify(result, null, 2));
+        }
+      } else {
+        console.log("Result:", JSON.stringify(result, null, 2));
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error calling tool:", error.message);

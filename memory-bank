@@ -1,0 +1,57 @@
+# 2024-02-22 16:34
+
+## CLIの引数パース改善
+
+- lmcp.tsのCLI引数パースを改善
+- `--` をセパレータとして二段階で引数をパース
+- 前半: モジュールパスとツール名
+- 後半: ツールへの任意の引数（--key=value形式）
+- 使用例: `deno run -A lmcp.ts ./examples/getStringLength.ts getStringLength -- --input="hello world"`
+
+## readUrlツールの実装と動作確認
+
+- examples/readUrl.tsを実装
+- デフォルトエクスポートを追加して動作するように修正
+- MCPの結果フォーマットを適切に設定（type: "text"のcontentを返すように修正）
+- lmcp.tsの出力処理を改善し、テキスト結果を見やすく表示
+- Zennの記事（https://zenn.dev/mizchi/articles/deno-mcp-server）の内容を正常に取得できることを確認
+- 使用例: `deno run -A lmcp.ts ./examples/readUrl.ts readUrl -- --url="https://zenn.dev/mizchi/articles/deno-mcp-server"`
+
+## getStringLengthツールの動作確認
+
+- 新しい引数パース形式で正常に動作することを確認
+- 日本語文字列の長さも正しく計算できることを確認
+- 使用例: `deno run -A lmcp.ts ./examples/getStringLength.ts getStringLength -- --input="こんにちは世界"` → 結果: 7
+
+## モジュールパスの解決改善
+
+- lmcp.tsのモジュールパス解決ロジックを改善
+- path.isAbsolute でパスの種類をチェック
+- 相対パスの場合は Deno.cwd() を基準にパスを解決
+- 絶対パスの場合はそのまま使用
+- 動作確認: `deno run -A lmcp.ts ./examples/getStringLength.ts getStringLength -- --input="テスト"` → 結果: 3
+
+## 結果表示の改善
+
+- テキスト結果の表示ロジックを改善
+- JSONオブジェクト形式（{ }）の場合はそのまま表示
+- それ以外の場合はJSON.parseを使って\nをunescapeして表示
+- パース失敗時は元のテキストをそのまま表示
+- readUrlとgetStringLengthの両方で正常に動作することを確認
+
+## CLIテストの実装
+
+- usage.tsをlmcp.test.tsにリネーム
+- Deno.testを使用してテストケースを記述
+- daxを使用してコマンド実行とテスト
+- assertEqualsを使用して結果を検証
+- 正常系テスト：
+  - getStringLength（ツール名あり/なし）
+  - readUrl（ツール名あり/なし）
+- 異常系テスト：
+  - 引数不足（--なし）
+  - 無効なツール名
+  - 必須引数なし
+- $.setPrintCommand(true)でコマンドを表示
+- .noThrow()と.quiet()を使用してエラーケースを適切に処理
+- すべてのテストが正常に完了（7 passed, 0 failed）

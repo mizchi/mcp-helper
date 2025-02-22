@@ -109,25 +109,21 @@ Creates a test client for the given server.
 - `server`: The MCP server instance
 - Returns: A type-safe client for testing tools
 
-## CLI
+## CLI (Experimental)
 
-NOTION: you can not install cli via jsr for dynamic import restrictions.
+**CAUTION**: You can not install cli via jsr for dynamic import restrictions.
+
+```bash
+# Install cli
+$ deno install -Afg ./lmcp.ts -A
+$ lmcp examples/readUrl.ts readUrl -- --url=https://zenn.dev/mizchi/articles/deno-mcp-server
+```
 
 Add this export for your server impl.
 
 ```ts
 // add this export for impl
 export default server;
-```
-
-```bash
-# clone this repo and cd 
-# run local
-$ deno run -A ./lmcp.ts -A examples/getStringLength.ts --input hello
-
-# Install cli
-$ deno install -Afg ./lmcp.ts -A
-$ lmcp examples/getStringLength.ts --input hello
 ```
 
 ## Development
