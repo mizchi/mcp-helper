@@ -1,12 +1,6 @@
 import { parseArgs } from "node:util";
 import { createInMemoryTestClient } from "./lib.ts";
-import {
-  resolve,
-  fromFileUrl,
-  join,
-  isAbsolute,
-  basename,
-} from "jsr:@std/path";
+import { join, isAbsolute, basename } from "jsr:@std/path";
 
 async function main() {
   // Find the index of "--" separator
@@ -77,7 +71,7 @@ async function main() {
     const absolutePath = isAbsolute(modulePath)
       ? modulePath
       : join(Deno.cwd(), modulePath);
-    console.log(`Loading server from ${absolutePath}`);
+    console.log(`%cLoading server from ${absolutePath}`, "color: gray");
 
     const server = await import(absolutePath).then((m) => m.default);
     if (!server) {
@@ -94,40 +88,21 @@ export default server;`);
     }
 
     // Create in-memory client
-    console.log("Creating in-memory client (cli-test-client)...");
+    console.log(
+      "%cCreating in-memory client (cli-test-client)...",
+      "color: gray"
+    );
     const client = await createInMemoryTestClient(server);
 
     try {
       // Call tool with specified name
-      console.log(`Calling tool "${toolName}" with args:`, toolArgs);
+      console.log(
+        `%cCalling tool "${toolName}" with args:`,
+        toolArgs,
+        "color: gray"
+      );
       const result = await client.callTool(toolName, toolArgs);
-
-      // Format output based on content type
-      if (result.content && result.content.length > 0) {
-        const firstContent = result.content[0];
-        if (firstContent.type === "text") {
-          // If it's text content, check format and display
-          console.log("\nResult:");
-          const text = firstContent.text;
-          if (text.trim().startsWith("{") && text.trim().endsWith("}")) {
-            // If it looks like JSON object, display as-is
-            console.log(text);
-          } else {
-            try {
-              // Try to parse and stringify to unescape \n
-              console.log(JSON.parse(`"${text.replace(/"/g, '\\"')}"`));
-            } catch {
-              // If parsing fails, display as-is
-              console.log(text);
-            }
-          }
-        } else {
-          // For other types, use JSON stringify
-          console.log("Result:", JSON.stringify(result, null, 2));
-        }
-      } else {
-        console.log("Result:", JSON.stringify(result, null, 2));
-      }
+      console.dir(result, { depth: null });
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error calling tool:", error.message);
@@ -153,13 +128,11 @@ export default server;`);
   }
 }
 
-if (import.meta.main) {
-  main().catch((error: unknown) => {
-    if (error instanceof Error) {
-      console.error("Unhandled error:", error.message);
-    } else {
-      console.error("Unhandled error");
-    }
-    Deno.exit(1);
-  });
-}
+main().catch((error: unknown) => {
+  if (error instanceof Error) {
+    console.error("Unhandled error:", error.message);
+  } else {
+    console.error("Unhandled error", error);
+  }
+  Deno.exit(1);
+});

@@ -44,7 +44,7 @@
 - usage.tsをlmcp.test.tsにリネーム
 - Deno.testを使用してテストケースを記述
 - daxを使用してコマンド実行とテスト
-- assertEqualsを使用して結果を検証
+- assertEqualsとassertMatchを使用して結果を検証
 - 正常系テスト：
   - getStringLength（ツール名あり/なし）
   - readUrl（ツール名あり/なし）
@@ -52,6 +52,8 @@
   - 引数不足（--なし）
   - 無効なツール名
   - 必須引数なし
+  - モジュールが存在しない
+  - デフォルトエクスポートなし
 - $.setPrintCommand(true)でコマンドを表示
-- .noThrow()と.quiet()を使用してエラーケースを適切に処理
-- すべてのテストが正常に完了（7 passed, 0 failed）
+- stderr("null")で不要なログを非表示
+- すべてのテストが正常に完了（9 passed, 0 failed）

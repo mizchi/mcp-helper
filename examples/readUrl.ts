@@ -33,15 +33,7 @@ const tools = [
     inputSchema: z.object({
       url: z.string().describe("The URL to read"),
     }),
-    outputSchema: z.object({
-      content: z.array(
-        z.object({
-          type: z.literal("text"),
-          text: z.string(),
-        })
-      ),
-      isError: z.boolean().optional(),
-    }),
+    outputSchema: z.string(),
   },
 ] as const;
 
@@ -56,14 +48,7 @@ const server = createToolsServer(
     async readUrl(params: { url: string }) {
       const data = await fetch(params.url).then((res) => res.text());
       const md = getExtractContent(data);
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: md,
-          },
-        ],
-      };
+      return md;
     },
   }
 );
