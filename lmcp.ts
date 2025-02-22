@@ -1,9 +1,6 @@
 import { parseArgs } from "node:util";
 import { createInMemoryTestClient } from "./lib.ts";
-import {
-  resolve,
-  fromFileUrl,
-} from "https://deno.land/std@0.210.0/path/mod.ts";
+import { resolve, fromFileUrl } from "jsr:@std/path";
 
 async function main() {
   const { positionals, values } = parseArgs({

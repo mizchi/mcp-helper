@@ -4,8 +4,7 @@
   "license": "MIT",
   "description": "MCP helper",
   "exports": {
-    ".": "./mod.ts",
-    "./lmcp": "./lmcp.ts"
+    ".": "./mod.ts"
   },
   "tasks": {
     "test": "deno test -A"

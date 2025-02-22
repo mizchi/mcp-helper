@@ -111,6 +111,8 @@ Creates a test client for the given server.
 
 ## CLI
 
+NOTION: you can not install cli via jsr for dynamic import restrictions.
+
 Add this export for your server impl.
 
 ```ts
@@ -119,11 +121,12 @@ export default server;
 ```
 
 ```bash
+# clone this repo and cd 
 # run local
-$ deno run -A jsr:@mizchi/mcp-helper/lmcp -A examples/getStringLength.ts --input hello
+$ deno run -A ./lmcp.ts -A examples/getStringLength.ts --input hello
 
 # Install cli
-$ deno install -Afg jsr:@mizchi/mcp-helper/lmcp -A
+$ deno install -Afg ./lmcp.ts -A
 $ lmcp examples/getStringLength.ts --input hello
 ```
 
