@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "local": {
+      "command": "/home/mizchi/.deno/bin/deno",
+      "args": [
+        "run",
+        "-A",
+        "/home/mizchi/mizchi/mcp-helper/examples/getStringLength.ts"
+      ],
+      "env": {},
+      "disabled": false,
+      "alwaysAllow": []
+    }
+  }
+}
